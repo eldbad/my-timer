@@ -1,14 +1,10 @@
 use std::{
     env,
     fs::{self, File, OpenOptions},
-    io::{BufRead, BufReader, Read, Write},
+    io::{BufRead, BufReader, Write},
 };
 
 fn main() {
-    // Commands
-    // 1. Parse and print last time. If not found - print "not found"
-    // 2. Restart time
-    // 3. View all times
     // TODO: change unwrap to something more pleasing
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
