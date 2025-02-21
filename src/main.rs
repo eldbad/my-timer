@@ -1,6 +1,6 @@
 use std::{
     env,
-    fs::{File, OpenOptions},
+    fs::{self, File, OpenOptions},
     io::{BufRead, BufReader, Read, Write},
 };
 
@@ -36,11 +36,7 @@ fn read_last_from_file() -> String {
 }
 
 fn read_all_from_file() -> String {
-    let file = File::open("times.txt").unwrap();
-    let mut buf = String::new();
-    BufReader::new(file).read_to_string(&mut buf).unwrap();
-
-    return buf;
+    fs::read_to_string("times.txt").unwrap()
 }
 
 fn write_to_file(date: String) {
