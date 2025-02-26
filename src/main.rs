@@ -1,10 +1,34 @@
 use std::{
-    env,
+    env, error, fmt,
     fs::{self, File, OpenOptions},
     io::{self, BufRead, BufReader, Write},
 };
 
-fn main() -> io::Result<()> {
+// why pub tho?
+#[derive(Debug)]
+pub struct NoLastRecordError;
+
+impl fmt::Display for NoLastRecordError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "no last record found in file")
+    }
+}
+
+impl error::Error for NoLastRecordError {}
+
+#[derive(Debug)]
+pub enum OopsError {
+    NoLastRecordError,
+    IoError(io::Error),
+}
+
+impl From<io::Error> for OopsError {
+    fn from(error: io::Error) -> Self {
+        OopsError::IoError(error)
+    }
+}
+
+fn main() -> Result<(), OopsError> {
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
         panic!("oops");
@@ -24,12 +48,14 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn read_last_from_file() -> io::Result<String> {
+fn read_last_from_file() -> Result<String, OopsError> {
     let file = File::open("times.txt")?;
     let lines = BufReader::new(file).lines();
-    let last_el = lines.last().unwrap();
-
-    last_el
+    if let Some(last_el) = lines.last() {
+        Ok(last_el?)
+    } else {
+        Err(OopsError::NoLastRecordError)
+    }
 }
 
 fn read_all_from_file() -> io::Result<String> {
