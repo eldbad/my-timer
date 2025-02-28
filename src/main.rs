@@ -4,6 +4,8 @@ use std::{
     io::{self, BufRead, BufReader, Write},
 };
 
+use time::{macros::format_description, OffsetDateTime};
+
 #[derive(Debug)]
 pub enum TimerError {
     NoLastRecordError,
@@ -34,12 +36,17 @@ fn main() -> Result<(), TimerError> {
     if args.len() != 2 {
         return Err(TimerError::WrongNumberOfArguments);
     }
+
+    // change to match
+    // and remove Ok(())
     if &args[1] == "r" {
         let my_time = time::OffsetDateTime::now_utc().to_string();
         println!("{}", my_time);
         write_to_file(my_time)?;
     } else if &args[1] == "l" {
         println!("{}", read_last_from_file()?);
+    } else if &args[1] == "w" {
+        println!("{}", last_time()?);
     } else if &args[1] == "a" {
         println!("{}", read_all_from_file()?);
     } else {
@@ -71,4 +78,17 @@ fn write_to_file(value: String) -> io::Result<()> {
     file.write((value + "\n").as_bytes())?;
 
     Ok(())
+}
+
+fn last_time() -> Result<String, TimerError> {
+    let last_time = read_last_from_file()?;
+    // Can we omit subseconds?
+    let format = format_description!(
+        "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond] \
+        [offset_hour sign:mandatory]:[offset_minute]:[offset_second]"
+    );
+    let new_last_time = OffsetDateTime::parse(last_time.as_str(), &format).unwrap(); // DELETE UNWRAP
+    let result = OffsetDateTime::now_utc() - new_last_time;
+
+    Ok(result.to_string())
 }
