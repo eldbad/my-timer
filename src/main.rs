@@ -17,6 +17,10 @@ static FORMAT: &[BorrowedFormatItem<'_>] = format_description!(
     [offset_hour sign:mandatory]:[offset_minute]:[offset_second]"
 );
 
+// TODO:
+// 1. help command
+// 2. create times.txt if not found
+// 3. get dates
 fn main() -> Result<(), TimerError> {
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
