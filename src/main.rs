@@ -3,7 +3,7 @@ mod time_error;
 use crate::time_error::TimerError;
 
 use std::{
-    env, fmt,
+    env,
     fs::{self, File, OpenOptions},
     io::{self, BufRead, BufReader, Write},
 };
