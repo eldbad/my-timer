@@ -78,5 +78,10 @@ fn last_time() -> Result<String, TimerError> {
     let new_last_time = OffsetDateTime::parse(last_time.as_str(), &FORMAT).unwrap(); // DELETE UNWRAP
     let result = OffsetDateTime::now_utc() - new_last_time;
 
-    Ok(result.to_string())
+    let mut string_result = result.to_string();
+    let seconds_position = string_result.chars().position(|c| c == 's').unwrap(); // DELETE ANOTHER UNWRAP
+    string_result.truncate(seconds_position + 1);
+
+    Ok(string_result)
+}
 }
