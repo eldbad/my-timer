@@ -18,7 +18,7 @@ static FORMAT: &[BorrowedFormatItem<'_>] = format_description!(
 );
 
 // TODO:
-// 1. help command
+// 1. add cli crate
 // 2. create times.txt if not found
 // 3. get dates
 fn main() -> Result<(), TimerError> {
@@ -35,6 +35,12 @@ fn main() -> Result<(), TimerError> {
         println!("{}", last_time()?);
     } else if &args[1] == "a" {
         println!("{}", read_all_from_file()?);
+    } else if &args[1] == "h" {
+        println!("my-timer <command>");
+        println!("r - restart timer (add a new time)");
+        println!("l - show last time");
+        println!("w - show time passed from last time");
+        println!("a - show all times");
     } else {
         return Err(TimerError::WrongArgument);
     }
