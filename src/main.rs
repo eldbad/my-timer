@@ -23,12 +23,8 @@ fn main() -> Result<(), TimerError> {
         return Err(TimerError::WrongNumberOfArguments);
     }
 
-    // change to match
-    // and remove Ok(())
     if &args[1] == "r" {
-        let my_time = time::OffsetDateTime::now_utc().to_string();
-        println!("{}", my_time);
-        write_to_file(my_time)?;
+        add_new_time()?;
     } else if &args[1] == "l" {
         println!("{}", read_last_from_file()?);
     } else if &args[1] == "w" {
@@ -38,6 +34,14 @@ fn main() -> Result<(), TimerError> {
     } else {
         return Err(TimerError::WrongArgument);
     }
+
+    Ok(())
+}
+
+fn add_new_time() -> Result<(), TimerError> {
+    let my_time = time::OffsetDateTime::now_utc().format(&FORMAT)?;
+    println!("{}", my_time);
+    write_to_file(my_time)?;
 
     Ok(())
 }
