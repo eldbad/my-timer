@@ -8,8 +8,14 @@ use std::{
     io::{self, BufRead, BufReader, Write},
 };
 
+use time::format_description::BorrowedFormatItem;
 use time::{macros::format_description, OffsetDateTime};
 
+// Can we omit subseconds?
+static FORMAT: &[BorrowedFormatItem<'_>] = format_description!(
+    "[year]-[month]-[day] [hour]:[minute]:[second] \
+    [offset_hour sign:mandatory]:[offset_minute]:[offset_second]"
+);
 
 fn main() -> Result<(), TimerError> {
     let args: Vec<String> = env::args().collect();
@@ -62,12 +68,10 @@ fn write_to_file(value: String) -> io::Result<()> {
 
 fn last_time() -> Result<String, TimerError> {
     let last_time = read_last_from_file()?;
-    // Can we omit subseconds?
-    let format = format_description!(
-        "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond] \
-        [offset_hour sign:mandatory]:[offset_minute]:[offset_second]"
-    );
-    let new_last_time = OffsetDateTime::parse(last_time.as_str(), &format).unwrap(); // DELETE UNWRAP
+    // TODO: fix incorrect hour description
+    // Because [hour] doesn't recognize one
+    // literal, only two
+    let new_last_time = OffsetDateTime::parse(last_time.as_str(), &FORMAT).unwrap(); // DELETE UNWRAP
     let result = OffsetDateTime::now_utc() - new_last_time;
 
     Ok(result.to_string())
