@@ -1,3 +1,7 @@
+mod time_error;
+
+use crate::time_error::TimerError;
+
 use std::{
     env, fmt,
     fs::{self, File, OpenOptions},
@@ -6,30 +10,6 @@ use std::{
 
 use time::{macros::format_description, OffsetDateTime};
 
-#[derive(Debug)]
-pub enum TimerError {
-    NoLastRecordError,
-    WrongNumberOfArguments,
-    WrongArgument,
-    IoError(io::Error),
-}
-
-impl fmt::Display for TimerError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            TimerError::NoLastRecordError => write!(f, "no last record found in file"),
-            TimerError::IoError(err) => write!(f, "{}", err),
-            TimerError::WrongNumberOfArguments => write!(f, "wrong number of arguments given"),
-            TimerError::WrongArgument => write!(f, "wrong argument"),
-        }
-    }
-}
-
-impl From<io::Error> for TimerError {
-    fn from(error: io::Error) -> Self {
-        TimerError::IoError(error)
-    }
-}
 
 fn main() -> Result<(), TimerError> {
     let args: Vec<String> = env::args().collect();
