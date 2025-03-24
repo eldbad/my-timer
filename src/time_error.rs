@@ -1,11 +1,13 @@
 use std::{fmt, io};
 
 pub enum TimerError {
-    NoLastRecordError,
+    NoLastRecord,
     WrongNumberOfArguments,
     WrongArgument,
+    ParseDuration,
     IoError(io::Error),
-    TimeFormatError(time::error::Format),
+    TimeFormat(time::error::Format),
+    ParsingDate(time::error::Parse),
 }
 
 // impl fmt::Display for TimerError {
@@ -23,11 +25,13 @@ pub enum TimerError {
 impl fmt::Debug for TimerError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            TimerError::NoLastRecordError => write!(f, "no last record found in file"),
+            TimerError::NoLastRecord => write!(f, "no last record found in file"),
             TimerError::IoError(err) => write!(f, "{}", err),
             TimerError::WrongNumberOfArguments => write!(f, "wrong number of arguments given"),
             TimerError::WrongArgument => write!(f, "wrong argument"),
-            TimerError::TimeFormatError(err) => write!(f, "{}", err),
+            TimerError::ParseDuration => write!(f, "couldn't parse duration"),
+            TimerError::TimeFormat(err) => write!(f, "{}", err),
+            TimerError::ParsingDate(err) => write!(f, "{}", err),
         }
     }
 }
@@ -40,6 +44,12 @@ impl From<io::Error> for TimerError {
 
 impl From<time::error::Format> for TimerError {
     fn from(error: time::error::Format) -> Self {
-        TimerError::TimeFormatError(error)
+        TimerError::TimeFormat(error)
+    }
+}
+
+impl From<time::error::Parse> for TimerError {
+    fn from(error: time::error::Parse) -> Self {
+        TimerError::ParsingDate(error)
     }
 }

@@ -62,7 +62,7 @@ fn read_last_from_file() -> Result<String, TimerError> {
     if let Some(last_el) = lines.last() {
         Ok(last_el?)
     } else {
-        Err(TimerError::NoLastRecordError)
+        Err(TimerError::NoLastRecord)
     }
 }
 
@@ -85,11 +85,14 @@ fn last_time() -> Result<String, TimerError> {
     // TODO: fix incorrect hour description
     // Because [hour] doesn't recognize one
     // literal, only two
-    let new_last_time = OffsetDateTime::parse(last_time.as_str(), &FORMAT).unwrap(); // DELETE UNWRAP
+    let new_last_time = OffsetDateTime::parse(last_time.as_str(), &FORMAT)?; // DELETE UNWRAP
     let result = OffsetDateTime::now_utc() - new_last_time;
 
     let mut string_result = result.to_string();
-    let seconds_position = string_result.chars().position(|c| c == 's').unwrap(); // DELETE ANOTHER UNWRAP
+    let seconds_position = string_result
+        .chars()
+        .position(|c| c == 's')
+        .ok_or(TimerError::ParseDuration)?; // DELETE ANOTHER UNWRAP
     string_result.truncate(seconds_position + 1);
 
     Ok(string_result)
