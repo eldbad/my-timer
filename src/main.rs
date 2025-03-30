@@ -15,6 +15,7 @@ static FORMAT: &[BorrowedFormatItem<'_>] = format_description!(
     [offset_hour sign:mandatory]:[offset_minute]:[offset_second]"
 );
 
+#[allow(dead_code)]
 static TIMES_DIR: &str = "my-timer";
 static TIMES_FILE: &str = "times.txt";
 
@@ -27,13 +28,19 @@ fn main() -> Result<(), TimerError> {
         return Err(TimerError::WrongNumberOfArguments);
     }
 
-    #[cfg(target_os = "linux")]
+    #[cfg(all(not(debug_assertions), target_os = "linux"))]
     let dir_path = env::var("HOME")? + "/.config/" + TIMES_DIR;
 
+    #[cfg(not(debug_assertions))]
     if !Path::new(dir_path.as_str()).exists() {
         fs::create_dir(&dir_path)?;
     }
+
+    #[cfg(not(debug_assertions))]
     let path = dir_path + "/" + TIMES_FILE;
+    #[cfg(debug_assertions)]
+    let path = String::from(TIMES_FILE);
+
     let file = if !Path::new(path.as_str()).exists() {
         fs::File::create_new(path)? // put this as global
     } else {
