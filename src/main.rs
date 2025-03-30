@@ -95,6 +95,8 @@ fn read_all_from_file(mut file: fs::File) -> io::Result<String> {
     let mut buf = String::new();
     file.read_to_string(&mut buf)?;
 
+    buf.pop();
+
     Ok(buf)
 }
 
