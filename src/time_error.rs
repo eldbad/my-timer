@@ -1,4 +1,4 @@
-use std::{fmt, io};
+use std::{env, fmt, io};
 
 pub enum TimerError {
     NoLastRecord,
@@ -8,6 +8,7 @@ pub enum TimerError {
     IoError(io::Error),
     TimeFormat(time::error::Format),
     ParsingDate(time::error::Parse),
+    VarError(env::VarError),
 }
 
 // impl fmt::Display for TimerError {
@@ -32,6 +33,7 @@ impl fmt::Debug for TimerError {
             TimerError::ParseDuration => write!(f, "couldn't parse duration"),
             TimerError::TimeFormat(err) => write!(f, "{}", err),
             TimerError::ParsingDate(err) => write!(f, "{}", err),
+            TimerError::VarError(err) => write!(f, "{}", err),
         }
     }
 }
@@ -51,5 +53,11 @@ impl From<time::error::Format> for TimerError {
 impl From<time::error::Parse> for TimerError {
     fn from(error: time::error::Parse) -> Self {
         TimerError::ParsingDate(error)
+    }
+}
+
+impl From<env::VarError> for TimerError {
+    fn from(error: env::VarError) -> Self {
+        TimerError::VarError(error)
     }
 }
