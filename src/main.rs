@@ -3,8 +3,9 @@ mod time_error;
 use crate::time_error::TimerError;
 
 use std::env;
-use std::fs::{self, File, OpenOptions};
-use std::io::{self, BufRead, BufReader, Write};
+use std::fs;
+use std::io::{self, BufRead, BufReader, Read, Write};
+use std::path::Path;
 
 use time::format_description::BorrowedFormatItem;
 use time::{macros::format_description, OffsetDateTime};
@@ -14,28 +15,45 @@ static FORMAT: &[BorrowedFormatItem<'_>] = format_description!(
     [offset_hour sign:mandatory]:[offset_minute]:[offset_second]"
 );
 
+static TIMES_DIR: &str = "my-timer";
+static TIMES_FILE: &str = "times.txt";
+
 // TODO:
 // 1. add cli crate
-// 2. create times.txt if not found
-// 3. get dates
-// 4. times.txt to $HOME/.config/my-timer/
+// 2. get dates
 fn main() -> Result<(), TimerError> {
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
         return Err(TimerError::WrongNumberOfArguments);
     }
 
+    #[cfg(target_os = "linux")]
+    let dir_path = env::var("HOME")? + "/.config/" + TIMES_DIR;
+
+    if !Path::new(dir_path.as_str()).exists() {
+        fs::create_dir(&dir_path)?;
+    }
+    let path = dir_path + "/" + TIMES_FILE;
+    let file = if !Path::new(path.as_str()).exists() {
+        fs::File::create_new(path)? // put this as global
+    } else {
+        fs::File::options()
+            .write(true)
+            .read(true)
+            .append(true)
+            .open(path)?
+    };
+
     if &args[1] == "r" {
         // TODO:
         // 1. all other commands should return NoLastRecord
-        // 2. should create a directory my-timer and file times.txt corresponding to operating system
-        add_new_time()?;
+        add_new_time(file)?;
     } else if &args[1] == "l" {
-        println!("{}", read_last_from_file()?);
+        println!("{}", read_last_from_file(file)?);
     } else if &args[1] == "w" {
-        println!("{}", last_time()?);
+        println!("{}", last_time(file)?);
     } else if &args[1] == "a" {
-        println!("{}", read_all_from_file()?);
+        println!("{}", read_all_from_file(file)?);
     } else if &args[1] == "h" {
         println!("my-timer <command>");
         println!("r - restart timer (add a new time)");
@@ -49,16 +67,15 @@ fn main() -> Result<(), TimerError> {
     Ok(())
 }
 
-fn add_new_time() -> Result<(), TimerError> {
+fn add_new_time(file: fs::File) -> Result<(), TimerError> {
     let my_time = time::OffsetDateTime::now_utc().format(&FORMAT)?;
     println!("{}", my_time);
-    write_to_file(my_time)?;
+    write_to_file(file, my_time)?;
 
     Ok(())
 }
 
-fn read_last_from_file() -> Result<String, TimerError> {
-    let file = File::open("times.txt")?;
+fn read_last_from_file(file: fs::File) -> Result<String, TimerError> {
     let lines = BufReader::new(file).lines();
     if let Some(last_el) = lines.last() {
         Ok(last_el?)
@@ -67,22 +84,21 @@ fn read_last_from_file() -> Result<String, TimerError> {
     }
 }
 
-fn read_all_from_file() -> io::Result<String> {
-    fs::read_to_string("times.txt")
+fn read_all_from_file(mut file: fs::File) -> io::Result<String> {
+    let mut buf = String::new();
+    file.read_to_string(&mut buf)?;
+
+    Ok(buf)
 }
 
-fn write_to_file(value: String) -> io::Result<()> {
-    let mut file = OpenOptions::new()
-        .write(true)
-        .append(true)
-        .open("times.txt")?;
+fn write_to_file(mut file: fs::File, value: String) -> io::Result<()> {
     file.write((value + "\n").as_bytes())?;
 
     Ok(())
 }
 
-fn last_time() -> Result<String, TimerError> {
-    let last_time = read_last_from_file()?;
+fn last_time(file: fs::File) -> Result<String, TimerError> {
+    let last_time = read_last_from_file(file)?;
     let new_last_time = OffsetDateTime::parse(last_time.as_str(), &FORMAT)?;
     let result = OffsetDateTime::now_utc() - new_last_time;
 
