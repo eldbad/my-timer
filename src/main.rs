@@ -61,6 +61,8 @@ fn main() -> Result<(), TimerError> {
         println!("{}", last_time(file)?);
     } else if &args[1] == "a" {
         println!("{}", read_all_from_file(file)?);
+    } else if &args[1] == "m" {
+        println!("{}", max_duration(file)?);
     } else if &args[1] == "h" {
         println!("my-timer <command>");
         println!("r - restart timer (add a new time)");
@@ -119,5 +121,20 @@ fn last_time(file: fs::File) -> Result<String, TimerError> {
     string_result.truncate(seconds_position + 1);
 
     Ok(string_result)
+}
+
+// delete unwraps
+fn max_duration(file: fs::File) -> Result<String, TimerError> {
+    let mut lines = BufReader::new(file).lines();
+    let mut first = OffsetDateTime::parse(lines.next().unwrap().unwrap().as_str(), &FORMAT)?;
+    let mut max = time::Duration::new(0, 0);
+
+    for line in lines {
+        let time = OffsetDateTime::parse(line.unwrap().as_str(), &FORMAT)?;
+        max = time::Duration::max(time - first, max);
+        first = time;
+    }
+
+    Ok(max.to_string())
 }
 }
