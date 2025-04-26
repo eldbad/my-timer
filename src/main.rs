@@ -137,4 +137,3 @@ fn max_duration(file: fs::File) -> Result<String, TimerError> {
 
     Ok(max.to_string())
 }
-}
